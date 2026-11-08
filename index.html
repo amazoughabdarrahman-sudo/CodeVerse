@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#02030a">
+  <meta name="description" content="CodeVerse: تجربة ثلاثية الأبعاد تفاعلية لاستكشاف المجموعة الشمسية.">
+  <title>CodeVerse | استكشف الكون</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="is-loading">
+
+  <!-- ================= شاشة التحميل ================= -->
+  <div id="loader" class="loader" role="status" aria-live="polite">
+    <div class="loader__orb" aria-hidden="true"></div>
+    <div class="loader__brand">CODEVERSE</div>
+    <div class="loader__track"><div id="loader-bar" class="loader__bar"></div></div>
+    <p id="loader-text" class="loader__text">جارٍ تحميل المكتبات...</p>
+  </div>
+
+  <!-- ================= شاشة الخطأ ================= -->
+  <div id="error-screen" class="error-screen" hidden role="alertdialog" aria-labelledby="error-title" aria-describedby="error-message">
+    <div class="error-card">
+      <h2 id="error-title">تعذّر تشغيل التجربة</h2>
+      <p id="error-message">حدث خطأ غير متوقع.</p>
+      <button id="error-reload-btn" class="btn btn--primary" type="button">إعادة تحميل الصفحة</button>
+    </div>
+  </div>
+
+  <!-- ================= تنبيه الخامات الناقصة ================= -->
+  <div id="texture-notice" class="texture-notice" hidden role="status">
+    <p id="texture-notice-text"></p>
+    <button id="texture-notice-close" class="texture-notice__close" type="button" aria-label="إغلاق التنبيه">&times;</button>
+  </div>
+
+  <!-- ================= صفحة الهبوط ================= -->
+  <main id="landing-page" class="page page--landing is-active">
+    <canvas id="landing-canvas" class="scene-canvas" aria-label="الكرة الأرضية"></canvas>
+    <div class="landing__veil" aria-hidden="true"></div>
+
+    <header class="landing__top">
+      <button id="music-btn" class="chip" type="button" aria-pressed="false">
+        <span class="chip__icon" aria-hidden="true">&#9835;</span>
+        <span id="music-btn-label">الموسيقى</span>
+      </button>
+      <p id="music-tip" class="chip chip--tip">فعّل الموسيقى لتجربة أفضل</p>
+    </header>
+
+    <section class="landing__content">
+      <h1 class="landing__title" lang="en" dir="ltr">CODEVERSE</h1>
+      <p class="landing__tagline" lang="en" dir="ltr">EXPLORE THE UNIVERSE</p>
+      <p class="landing__lead">
+        اكتشف أسرار الكون من خلال تجربة ثلاثية الأبعاد تفاعلية: تنقّل بين الشمس والكواكب وأقمارها، وتابع مداراتها، واقرأ تفاصيل كل جرم سماوي.
+      </p>
+      <button id="enter-btn" class="btn btn--primary btn--large" type="button">
+        <span id="enter-btn-label">اكتشف التجربة</span>
+      </button>
+
+      <dl class="landing__stats">
+        <div class="stat"><dt>كواكب</dt><dd id="stat-planets">8</dd></div>
+        <div class="stat"><dt>قمراً</dt><dd id="stat-moons">21</dd></div>
+        <div class="stat"><dt>نجم</dt><dd id="stat-stars">1</dd></div>
+      </dl>
+    </section>
+  </main>
+
+  <!-- ================= صفحة المجموعة الشمسية ================= -->
+  <section id="solar-page" class="page page--solar" aria-hidden="true">
+    <canvas id="solar-canvas" class="scene-canvas" aria-label="المجموعة الشمسية"></canvas>
+    <div id="labels-layer" class="labels-layer" aria-hidden="true"></div>
+
+    <!-- الشريط العلوي -->
+    <header class="toolbar">
+      <div class="toolbar__group">
+        <button id="home-btn" class="icon-btn" type="button" title="الصفحة الرئيسية" aria-label="الصفحة الرئيسية">&#8962;</button>
+        <button id="reset-btn" class="icon-btn" type="button" title="عرض شامل للمجموعة" aria-label="عرض شامل للمجموعة">&#10227;</button>
+        <button id="orbits-btn" class="icon-btn is-on" type="button" title="إظهار أو إخفاء المدارات" aria-pressed="true" aria-label="المدارات">&#9678;</button>
+        <button id="labels-btn" class="icon-btn is-on" type="button" title="إظهار أو إخفاء الأسماء" aria-pressed="true" aria-label="الأسماء">Aa</button>
+        <button id="fullscreen-btn" class="icon-btn" type="button" title="ملء الشاشة" aria-label="ملء الشاشة">&#9974;</button>
+      </div>
+
+      <div class="toolbar__group toolbar__group--sliders">
+        <label class="slider">
+          <button id="solar-music-btn" class="icon-btn icon-btn--small" type="button" title="تشغيل أو إيقاف الموسيقى" aria-pressed="false" aria-label="الموسيقى">&#9835;</button>
+          <input id="volume-slider" type="range" min="0" max="1" step="0.01" value="0.5" aria-label="مستوى الصوت">
+        </label>
+        <label class="slider">
+          <span class="slider__label">السرعة</span>
+          <input id="speed-slider" type="range" min="0" max="10" step="0.1" value="1" aria-label="سرعة الحركة">
+          <output id="speed-value" class="slider__value" dir="ltr">1.0x</output>
+        </label>
+      </div>
+    </header>
+
+    <!-- قائمة الأجرام -->
+    <nav id="planet-nav" class="planet-nav" aria-label="الأجرام السماوية"></nav>
+
+    <p id="solar-hint" class="solar-hint">اسحب للدوران، وبالعجلة أو بإصبعين للتقريب، واضغط على أي كوكب لعرض معلوماته.</p>
+
+    <!-- لوحة المعلومات -->
+    <aside id="info-panel" class="info-panel" aria-hidden="true" aria-live="polite">
+      <button id="close-panel-btn" class="info-panel__close" type="button" aria-label="إغلاق اللوحة">&times;</button>
+
+      <div class="info-panel__scroll">
+        <header class="info-panel__head">
+          <span id="planet-swatch" class="swatch" aria-hidden="true"></span>
+          <div>
+            <h2 id="planet-name" class="info-panel__name"></h2>
+            <p id="planet-name-en" class="info-panel__name-en" lang="en" dir="ltr"></p>
+            <p id="planet-type" class="info-panel__type"></p>
+          </div>
+        </header>
+
+        <p id="planet-description" class="info-panel__desc"></p>
+
+        <section id="moon-section" class="info-panel__section" hidden>
+          <h3 id="moon-title" class="info-panel__subtitle">الأقمار</h3>
+          <ul id="moon-list" class="moon-list"></ul>
+        </section>
+
+        <section class="info-panel__section">
+          <h3 class="info-panel__subtitle">الأرقام الأساسية</h3>
+          <dl id="planet-stats" class="stats-grid"></dl>
+        </section>
+
+        <section class="info-panel__section">
+          <h3 class="info-panel__subtitle">هل تعلم؟</h3>
+          <ul id="planet-facts" class="facts-list"></ul>
+        </section>
+      </div>
+
+      <footer class="info-panel__actions">
+        <button id="focus-btn" class="btn btn--primary" type="button">التركيز على الجرم</button>
+        <button id="panel-reset-btn" class="btn btn--ghost" type="button">العودة للعرض الشامل</button>
+      </footer>
+    </aside>
+  </section>
+
+  <!-- ================= عناصر مشتركة ================= -->
+  <div id="transition-overlay" class="transition-overlay" aria-hidden="true"></div>
+  <audio id="space-audio" loop preload="none"></audio>
+
+  <noscript>
+    <div class="noscript">هذه التجربة تحتاج إلى تفعيل JavaScript في المتصفح.</div>
+  </noscript>
+
+  <!--
+    تحميل السكربتات بالترتيب الصحيح، مع مصادر بديلة لكل مكتبة:
+    1) Three.js r128   2) OrbitControls r128   3) data.js   4) script.js
+    إذا فشل مصدر ينتقل تلقائياً إلى التالي، وإذا فشلت كلها تظهر شاشة خطأ بدل صفحة فارغة.
+    للعمل دون إنترنت: ضع three.min.js و OrbitControls.js (إصدار r128) داخل مجلد libs/
+  -->
+  <script>
+    (function () {
+      'use strict';
+
+      var CHAIN = [
+        {
+          name: 'Three.js r128',
+          urls: [
+            'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
+            'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js',
+            'libs/three.min.js'
+          ],
+          ok: function () { return typeof window.THREE !== 'undefined'; }
+        },
+        {
+          name: 'OrbitControls',
+          urls: [
+            'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js',
+            'https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js',
+            'libs/OrbitControls.js'
+          ],
+          ok: function () { return typeof window.THREE !== 'undefined' && typeof window.THREE.OrbitControls !== 'undefined'; }
+        },
+        {
+          name: 'data.js',
+          urls: ['data.js'],
+          ok: function () { return !!window.CODEVERSE_DATA; }
+        },
+        {
+          name: 'script.js',
+          urls: ['script.js'],
+          ok: function () { return true; }
+        }
+      ];
+
+      function setText(id, text) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = text;
+      }
+
+      function fatal(title, message) {
+        window.__CODEVERSE_LIB_ERROR__ = true;
+        setText('error-title', title);
+        setText('error-message', message);
+        var box = document.getElementById('error-screen');
+        if (box) box.hidden = false;
+        document.body.classList.remove('is-loading');
+        var loader = document.getElementById('loader');
+        if (loader) loader.hidden = true;
+      }
+
+      function loadScript(url, onload, onerror) {
+        var s = document.createElement('script');
+        s.src = url;
+        s.async = false;
+        s.onload = onload;
+        s.onerror = function () { s.parentNode && s.parentNode.removeChild(s); onerror(); };
+        document.body.appendChild(s);
+      }
+
+      function runStep(index) {
+        if (index >= CHAIN.length) return;
+        var step = CHAIN[index];
+        var i = 0;
+
+        setText('loader-text', 'جارٍ تحميل ' + step.name + '...');
+
+        (function tryNext() {
+          if (i >= step.urls.length) {
+            fatal(
+              'تعذّر تحميل ' + step.name,
+              index < 2
+                ? 'تأكد من اتصال الإنترنت، أو ضع نسخة r128 من الملف داخل مجلد libs/ بجانب index.html.'
+                : 'الملف ' + step.name + ' غير موجود بجانب index.html أو فيه خطأ. تأكد من اسمه بالضبط ومن حفظه، ثم افتح أدوات المطور (F12) وراجع تبويب Console.'
+            );
+            return;
+          }
+          var url = step.urls[i++];
+          loadScript(url, function () {
+            if (step.ok()) { runStep(index + 1); }
+            else { tryNext(); }
+          }, tryNext);
+        })();
+      }
+
+      var reloadBtn = document.getElementById('error-reload-btn');
+      if (reloadBtn) reloadBtn.addEventListener('click', function () { window.location.reload(); });
+
+      runStep(0);
+    })();
+  </script>
+</body>
+</html>
